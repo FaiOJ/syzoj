@@ -9,6 +9,7 @@
 </style>
 <div class="padding">
 <h1 class="ui center aligned header" style="margin-bottom: 30px; "><%= contest.title %></h1>
+    <div style="padding-left:2.5em; overflow:auto;">
         <table class="ui very basic center aligned table">
             <thead>
             <tr>
@@ -18,15 +19,15 @@
                   <th>通过数量</th>
                   <th>罚时</th>
                 <% } %>
+                <% if (contest.type === 'noi' || contest.type === 'ioi' || contest.type === 'prc') { %>
+                  <th>总分</th>
+                <% } %>
                 <% for (let i = 0; i < problems.length; i++) { %>
                 <th>
                   <a href="<%= syzoj.utils.makeUrl(['contest', contest.id, 'problem', i + 1]) %>">
                     <%= syzoj.utils.removeTitleTag(problems[i].title) %>
                   </a>
                 </th>
-                <% } %>
-                <% if (contest.type === 'noi' || contest.type === 'ioi') { %>
-                  <th>总分</th>
                 <% } %>
             </tr>
             </thead>
@@ -54,7 +55,7 @@
             %>
             <tr>
                 <%
-                  if (contest.type === 'noi' || contest.type === 'ioi') {
+                  if (contest.type === 'noi' || contest.type === 'ioi' || contest.type === 'prc') {
                     if (i === 1 || item.player.score !== lastItem.player.score) rank = i;
                   } else if (contest.type === 'acm') {
                     for (let problem of problems) {
@@ -92,6 +93,26 @@
                     <%= syzoj.utils.formatTime(timeSum) %>
                   </td>
                 <% } %>
+                <% if (contest.type === 'noi' || contest.type === 'ioi' || contest.type === 'prc') { %>
+                  <%
+                  for (let problem of problems) {
+                    if (item.player.score_details[problem.id]) {
+                      if (item.player.score_details[problem.id].weighted_score != null) {
+                        latest = Math.max(latest, item.player.score_details[problem.id].judge_state.submit_time)
+                      }
+                    }
+                  }
+                  %>
+
+                  <td>
+                    <span class="score score_<%= parseInt((item.player.score / ranklist[0].player.score * 10) || 0) %>">
+                      <%= item.player.score %>
+                    </span>
+                    <div class="submit_time">
+                      <%= syzoj.utils.formatTime(latest - contest.start_time) %>
+                    </div>
+                  </td>
+                <% } %>
                 <% for (let problem of problems) { %>
                   <% if (problem.min === i) { %>
                     <td style="background: rgb(244, 255, 245); ">
@@ -121,7 +142,7 @@
                         <% } %>
                       </a>
                     </td>
-                  <% } else if (contest.type === 'noi' || contest.type === 'ioi') { %>
+                  <% } else if (contest.type === 'noi' || contest.type === 'ioi' || contest.type === 'prc') { %>
                       <a href="<%= syzoj.utils.makeUrl(['submission', item.player.score_details[problem.id].judge_id]) %>">
                         <% if (item.player.score_details[problem.id].weighted_score != null) { %>
                           <span class="score score_<%= parseInt((item.player.score_details[problem.id].score / 10) || 0) %>">
@@ -140,21 +161,12 @@
                     </td>
                   <% } %>
                 <% } %>
-                <% if (contest.type === 'noi' || contest.type === 'ioi') { %>
-                  <td>
-                    <span class="score score_<%= parseInt((item.player.score / ranklist[0].player.score * 10) || 0) %>">
-                      <%= item.player.score %>
-                    </span>
-                    <div class="submit_time">
-                      <%= syzoj.utils.formatTime(latest - contest.start_time) %>
-                    </div>
-                  </td>
-                <% } %>
             </tr>
             <% lastItem = item; %>
             <% } %>
             </tbody>
         </table>
+    </div>
 <% if (!ranklist.length) { %>
 <div style="background-color: #fff; height: 18px; margin-top: -18px; "></div>
 <div class="ui placeholder segment" style="margin-top: 0px; ">

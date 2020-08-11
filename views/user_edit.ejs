@@ -81,13 +81,17 @@
           <input <% if (!allowedManagePrivilege) { %>disabled="disabled" <% } %>type="checkbox"<% if (edited_user.privileges.includes('manage_problem_tag')) { %> checked<% } %>>
           <label>管理题目标签</label>
         </div>
-        <div class="ui toggle <% if (!allowedManagePrivilege) { %>disabled <% } %>checkbox checkbox_privilege" data-name="manage_user">
+        <div class="ui toggle <% if (!allowedManagePrivilege) { %>disabled <% } %>checkbox checkbox_privilege" data-name="manage_user" style="margin-right: 20px; ">
           <input <% if (!allowedManagePrivilege) { %>disabled="disabled" <% } %>type="checkbox"<% if (edited_user.privileges.includes('manage_user')) { %> checked<% } %>>
           <label>管理用户</label>
+        </div> 
+        <div class="ui toggle <% if (!allowedManagePrivilege) { %>disabled <% } %>checkbox checkbox_privilege" data-name="manage_contest">
+          <input <% if (!allowedManagePrivilege) { %>disabled="disabled" <% } %>type="checkbox"<% if (edited_user.privileges.includes('manage_contest')) { %> checked<% } %>>
+          <label>管理比赛</label>
         </div>
       </div>
       <div style="text-align: center; margin-top: 30px; ">
-        <button id="submit_button" type="submit" class="ui disabled blue labeled icon button"><i class="ui icon edit"></i>修改</button>
+        <button type="submit" class="ui blue labeled icon button"><i class="ui icon edit"></i>修改</button>
         <a href="<%= syzoj.utils.makeUrl(['user', edited_user.id]) %>" class="ui labeled icon button"><i class="ui icon angle left"></i>返回</a>
       </div>
       </div>
@@ -114,8 +118,6 @@ window.onEditorLoaded(function () {
     var input = document.getElementsByName(name)[0];
     editor.editor = window.createMarkdownEditor(editorElement, editor.defaultValue, input);
   }
-
-  $('#submit_button').removeClass('disabled');
 });
 
 function make_md5(tag) {

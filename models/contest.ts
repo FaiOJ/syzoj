@@ -11,7 +11,8 @@ import ContestPlayer from "./contest_player";
 enum ContestType {
   NOI = "noi",
   IOI = "ioi",
-  ICPC = "acm"
+  ICPC = "acm",
+  PRC = "prc"
 }
 
 @TypeORM.Entity()
@@ -37,7 +38,7 @@ export default class Contest extends Model {
   @TypeORM.Column({ nullable: true, type: "integer" })
   holder_id: number;
 
-  // type: noi, ioi, acm
+  // type: noi, ioi, acm, prc
   @TypeORM.Column({ nullable: true, type: "enum", enum: ContestType })
   type: ContestType;
 
@@ -60,6 +61,11 @@ export default class Contest extends Model {
   @TypeORM.Column({ nullable: true, type: "boolean" })
   hide_statistics: boolean;
 
+  // Foreign Keys 
+  // contest_player
+  @TypeORM.OneToMany(type => ContestPlayer, contestPlayer => contestPlayer.contest_t)
+  contestPlayers: ContestPlayer[];
+
   holder?: User;
   ranklist?: ContestRanklist;
 
@@ -69,26 +75,28 @@ export default class Contest extends Model {
   }
 
   async isSupervisior(user) {
-    return user && (user.is_admin || this.holder_id === user.id || this.admins.split('|').includes(user.id.toString()));
+    if (!user) return false;
+    if (await user.hasPrivilege('manage_contest')) return true;
+    return (user.is_admin || this.holder_id === user.id || this.admins.split('|').includes(user.id.toString()));
   }
 
   allowedSeeingOthers() {
-    if (this.type === 'acm') return true;
+    if (this.type === 'acm' || this.type === 'prc') return true;
     else return false;
   }
 
   allowedSeeingScore() { // If not, then the user can only see status
-    if (this.type === 'ioi') return true;
+    if (this.type === 'ioi' || this.type === 'prc') return true;
     else return false;
   }
 
   allowedSeeingResult() { // If not, then the user can only see compile progress
-    if (this.type === 'ioi' || this.type === 'acm') return true;
+    if (this.type === 'ioi' || this.type === 'acm' || this.type === 'prc') return true;
     else return false;
   }
 
   allowedSeeingTestcase() {
-    if (this.type === 'ioi') return true;
+    if (this.type === 'ioi' || this.type === 'prc') return true;
     return false;
   }
 

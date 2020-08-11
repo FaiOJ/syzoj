@@ -6,6 +6,7 @@ declare var syzoj, ErrorMessage: any;
 import User from "./user";
 import Problem from "./problem";
 import Contest from "./contest";
+import SubmissionStatistics from "./submission_statistics";
 
 const Judger = syzoj.lib('judger');
 
@@ -78,6 +79,9 @@ export default class JudgeState extends Model {
   @TypeORM.Index()
   @TypeORM.Column({ nullable: true, type: "integer" })
   user_id: number;
+  @TypeORM.ManyToOne(type => User, user => user.judgeStates, {onDelete: "CASCADE", onUpdate: "CASCADE",})
+  @TypeORM.JoinColumn({name: 'user_id'})
+  user_t: User;
 
   @TypeORM.Index()
   @TypeORM.Column({ nullable: true, type: "integer" })
@@ -101,6 +105,11 @@ export default class JudgeState extends Model {
   @TypeORM.Index()
   @TypeORM.Column({ nullable: true, type: "boolean" })
   is_public: boolean;
+
+  // Foreign Keys 
+  // submission_statistics
+  @TypeORM.OneToMany(type => SubmissionStatistics, submissionStatistics => submissionStatistics.judgeState_t)
+  submissionStatistics: SubmissionStatistics[];
 
   user?: User;
   problem?: Problem;

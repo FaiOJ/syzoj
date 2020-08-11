@@ -30,7 +30,7 @@ app.get('/', async (req, res) => {
     }
 
     let contests = await Contest.queryRange([1, 5], { is_public: true }, {
-      start_time: 'DESC'
+      end_time: 'DESC'
     });
 
     let problems = (await Problem.queryRange([1, 5], { is_public: true }, {
@@ -47,7 +47,8 @@ app.get('/', async (req, res) => {
       fortune: fortune,
       contests: contests,
       problems: problems,
-      links: syzoj.config.links
+      links: syzoj.config.links,
+      tool_links: syzoj.config.tool_links
     });
   } catch (e) {
     syzoj.log(e);

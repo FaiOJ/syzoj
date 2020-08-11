@@ -10,20 +10,24 @@ const { getSubmissionInfo, getRoughResult, processOverallResult } = require('../
 
 app.get('/contests', async (req, res) => {
   try {
+    const curUser = res.locals.user;
+    const allowManageContest = curUser && (curUser.is_admin || await curUser.hasPrivilege('manage_contest'));
+
     let where;
-    if (res.locals.user && res.locals.user.is_admin) where = {}
+    if (curUser && allowManageContest) where = {};
     else where = { is_public: true };
 
     let paginate = syzoj.utils.paginate(await Contest.countForPagination(where), req.query.page, syzoj.config.page.contest);
     let contests = await Contest.queryPage(paginate, where, {
-      start_time: 'DESC'
+      end_time: 'DESC'
     });
 
     await contests.forEachAsync(async x => x.subtitle = await syzoj.utils.markdown(x.subtitle));
 
     res.render('contests', {
       contests: contests,
-      paginate: paginate
+      paginate: paginate,
+      allowManageContest: allowManageContest
     })
   } catch (e) {
     syzoj.log(e);
@@ -35,10 +39,13 @@ app.get('/contests', async (req, res) => {
 
 app.get('/contest/:id/edit', async (req, res) => {
   try {
-    if (!res.locals.user || !res.locals.user.is_admin) throw new ErrorMessage('您没有权限进行此操作。');
-
+    const curUser = res.locals.user;
     let contest_id = parseInt(req.params.id);
     let contest = await Contest.findById(contest_id);
+    const isSupervisior = !!contest ? (await contest.isSupervisior(curUser)) : (curUser && (curUser.is_admin || await curUser.hasPrivilege('manage_contest')));
+
+    if (!isSupervisior) throw new ErrorMessage('您没有权限进行此操作。');
+
     if (!contest) {
       contest = await Contest.create();
       contest.id = 0;
@@ -65,10 +72,13 @@ app.get('/contest/:id/edit', async (req, res) => {
 
 app.post('/contest/:id/edit', async (req, res) => {
   try {
-    if (!res.locals.user || !res.locals.user.is_admin) throw new ErrorMessage('您没有权限进行此操作。');
-
+    const curUser = res.locals.user;
     let contest_id = parseInt(req.params.id);
     let contest = await Contest.findById(contest_id);
+    const isSupervisior = !!contest ? (await contest.isSupervisior(curUser)) : (curUser && (curUser.is_admin || await curUser.hasPrivilege('manage_contest')));
+
+    if (!isSupervisior) throw new ErrorMessage('您没有权限进行此操作。');
+
     let ranklist = null;
     if (!contest) {
       contest = await Contest.create();
@@ -78,7 +88,7 @@ app.post('/contest/:id/edit', async (req, res) => {
       ranklist = await ContestRanklist.create();
 
       // Only new contest can be set type
-      if (!['noi', 'ioi', 'acm'].includes(req.body.type)) throw new ErrorMessage('无效的赛制。');
+      if (!['noi', 'ioi', 'acm', 'prc'].includes(req.body.type)) throw new ErrorMessage('无效的赛制。');
       contest.type = req.body.type;
     } else {
       await contest.loadRelationships();
@@ -121,12 +131,13 @@ app.get('/contest/:id', async (req, res) => {
   try {
     const curUser = res.locals.user;
     let contest_id = parseInt(req.params.id);
-
     let contest = await Contest.findById(contest_id);
     if (!contest) throw new ErrorMessage('无此比赛。');
-    if (!contest.is_public && (!res.locals.user || !res.locals.user.is_admin)) throw new ErrorMessage('比赛未公开，请耐心等待 (´∀ `)');
-
+    
     const isSupervisior = await contest.isSupervisior(curUser);
+
+    if (!contest.is_public && !isSupervisior) throw new ErrorMessage('比赛未公开，请耐心等待 (´∀ `)');
+
     contest.running = contest.isRunning();
     contest.ended = contest.isEnded();
     contest.subtitle = await syzoj.utils.markdown(contest.subtitle);
@@ -156,7 +167,7 @@ app.get('/contest/:id', async (req, res) => {
             }
             problem.judge_id = player.score_details[problem.problem.id].judge_id;
           }
-        } else if (contest.type === 'ioi') {
+        } else if (contest.type === 'ioi' || contest.type === 'prc') {
           if (player.score_details[problem.problem.id]) {
             let judge_state = await JudgeState.findById(player.score_details[problem.problem.id].judge_id);
             problem.status = judge_state.status;
@@ -188,18 +199,18 @@ app.get('/contest/:id', async (req, res) => {
       for (let problem of problems) {
         problem.statistics = { attempt: 0, accepted: 0 };
 
-        if (contest.type === 'ioi' || contest.type === 'noi') {
+        if (contest.type === 'ioi' || contest.type === 'noi' || contest.type === 'prc') {
           problem.statistics.partially = 0;
         }
 
         for (let player of players) {
           if (player.score_details[problem.problem.id]) {
             problem.statistics.attempt++;
-            if ((contest.type === 'acm' && player.score_details[problem.problem.id].accepted) || ((contest.type === 'noi' || contest.type === 'ioi') && player.score_details[problem.problem.id].score === 100)) {
+            if ((contest.type === 'acm' && player.score_details[problem.problem.id].accepted) || ((contest.type === 'noi' || contest.type === 'ioi' || contest.type === 'prc') && player.score_details[problem.problem.id].score === 100)) {
               problem.statistics.accepted++;
             }
 
-            if ((contest.type === 'noi' || contest.type === 'ioi') && player.score_details[problem.problem.id].score > 0) {
+            if ((contest.type === 'noi' || contest.type === 'ioi' || contest.type === 'prc') && player.score_details[problem.problem.id].score > 0) {
               problem.statistics.partially++;
             }
           }
@@ -242,7 +253,7 @@ app.get('/contest/:id/ranklist', async (req, res) => {
     let ranklist = await players_id.mapAsync(async player_id => {
       let player = await ContestPlayer.findById(player_id);
 
-      if (contest.type === 'noi' || contest.type === 'ioi') {
+      if (contest.type === 'noi' || contest.type === 'ioi' || contest.type === 'prc') {
         player.score = 0;
       }
 
@@ -250,7 +261,7 @@ app.get('/contest/:id/ranklist', async (req, res) => {
         player.score_details[i].judge_state = await JudgeState.findById(player.score_details[i].judge_id);
 
         /*** XXX: Clumsy duplication, see ContestRanklist::updatePlayer() ***/
-        if (contest.type === 'noi' || contest.type === 'ioi') {
+        if (contest.type === 'noi' || contest.type === 'ioi' || contest.type === 'prc') {
           let multiplier = (contest.ranklist.ranking_params || {})[i] || 1.0;
           player.score_details[i].weighted_score = player.score_details[i].score == null ? null : Math.round(player.score_details[i].score * multiplier);
           player.score += player.score_details[i].weighted_score;

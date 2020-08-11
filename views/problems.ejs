@@ -36,7 +36,7 @@ if (typeof tags !== 'undefined') tagIDs = tags.map(x => x.id);
       <div class="nine wide right aligned column">
         <div class="ui toggle checkbox" id="show_tag">
           <style id="show_tag_style"></style>
-          <script data-cfasync="false">
+          <script>
           if (localStorage.getItem('show_tag') === '1') {
             document.write('<input type="checkbox" checked>');
             document.getElementById('show_tag_style').innerHTML = '.show_tag_controled { white-space: nowrap; overflow: hidden; }';
@@ -92,7 +92,7 @@ if (typeof tags !== 'undefined') tagIDs = tags.map(x => x.id);
         <th class="one wide">提交状态</th>
         <% } %>
         <th class="one wide"><%- createSortableTitle('id', '编号', true) %></th>
-        <th class="left aligned"><%- createSortableTitle('title', '题目名称', true) %></th>
+        <th class="left aligned"><%- createSortableTitle('publicize_time', '题目名称', false) %></th>
         <th class="one wide"><%- createSortableTitle('ac_num', '通过', false) %></th>
         <th class="one wide"><%- createSortableTitle('submit_num', '提交', false) %></th>
         <th class="one wide">通过率</th>

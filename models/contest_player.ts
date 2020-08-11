@@ -14,10 +14,16 @@ export default class ContestPlayer extends Model {
   @TypeORM.Index()
   @TypeORM.Column({ nullable: true, type: "integer" })
   contest_id: number;
+  @TypeORM.ManyToOne(type => Contest, contest => contest.contestPlayers, {onDelete: "CASCADE", onUpdate: "CASCADE",})
+  @TypeORM.JoinColumn({name: 'contest_id'})
+  contest_t: Contest;
 
   @TypeORM.Index()
   @TypeORM.Column({ nullable: true, type: "integer" })
   user_id: number;
+  @TypeORM.ManyToOne(type => User, user => user.contestPlayers, {onDelete: "CASCADE", onUpdate: "CASCADE",})
+  @TypeORM.JoinColumn({name: 'user_id'})
+  user_t: User;
 
   @TypeORM.Column({ nullable: true, type: "integer" })
   score: number;
@@ -42,7 +48,7 @@ export default class ContestPlayer extends Model {
 
   async updateScore(judge_state) {
     await this.loadRelationships();
-    if (this.contest.type === 'ioi') {
+    if (this.contest.type === 'ioi' || this.contest.type === 'prc') {
       if (!judge_state.pending) {
         if (!this.score_details[judge_state.problem_id]) {
           this.score_details[judge_state.problem_id] = {

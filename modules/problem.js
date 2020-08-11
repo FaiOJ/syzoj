@@ -7,7 +7,6 @@ let Article = syzoj.model('article');
 
 const randomstring = require('randomstring');
 const fs = require('fs-extra');
-const jwt = require('jsonwebtoken');
 
 let Judger = syzoj.lib('judger');
 let CodeFormatter = syzoj.lib('code_formatter');
@@ -817,20 +816,6 @@ app.post('/problem/:id/testdata/delete/:filename', async (req, res) => {
   }
 });
 
-function downloadOrRedirect(req, res, filename, sendName) {
-  if (syzoj.config.site_for_download) {
-    res.redirect(syzoj.config.site_for_download + syzoj.utils.makeUrl(['api', 'v2', 'download', jwt.sign({
-      filename: filename,
-      sendName: sendName,
-      originUrl: syzoj.utils.getCurrentLocation(req)
-    }, syzoj.config.session_secret, {
-      expiresIn: '2m'
-    })]));
-  } else {
-    res.download(filename, sendName);
-  }
-}
-
 app.get('/problem/:id/testdata/download/:filename?', async (req, res) => {
   try {
     let id = parseInt(req.params.id);
@@ -848,8 +833,7 @@ app.get('/problem/:id/testdata/download/:filename?', async (req, res) => {
     let path = require('path');
     let filename = req.params.filename ? path.join(problem.getTestdataPath(), req.params.filename) : (problem.getTestdataArchivePath());
     if (!await syzoj.utils.isFile(filename)) throw new ErrorMessage('文件不存在。');
-
-    downloadOrRedirect(req, res, filename, path.basename(filename));
+    res.download(filename, path.basename(filename));
   } catch (e) {
     syzoj.log(e);
     res.status(404);
@@ -882,7 +866,7 @@ app.get('/problem/:id/download/additional_file', async (req, res) => {
 
     if (!problem.additional_file) throw new ErrorMessage('无附加文件。');
 
-    downloadOrRedirect(req, res, problem.additional_file.getPath(), `additional_file_${id}.zip`);
+    res.download(problem.additional_file.getPath(), `additional_file_${id}.zip`);
   } catch (e) {
     syzoj.log(e);
     res.status(404);
