@@ -151,6 +151,110 @@ app.get('/submissions', async (req, res) => {
   }
 });
 
+app.get('/submissions/all', async (req, res) => {
+  try {
+    const curUser = res.locals.user;
+
+    if (!curUser || !curUser.is_admin)
+      throw new ErrorMessage("您没有权限使用此功能。");
+
+    let query = JudgeState.createQueryBuilder();
+    let isFiltered = false;
+
+    let user = await User.fromName(req.query.submitter || '');
+    if (user) {
+      query.andWhere('user_id = :user_id', { user_id: user.id });
+      isFiltered = true;
+    } else if (req.query.submitter) {
+      query.andWhere('user_id = :user_id', { user_id: 0 });
+      isFiltered = true;
+    }
+
+    let minScore = parseInt(req.query.min_score);
+    if (!isNaN(minScore)) query.andWhere('score >= :minScore', { minScore });
+    let maxScore = parseInt(req.query.max_score);
+    if (!isNaN(maxScore)) query.andWhere('score <= :maxScore', { maxScore });
+
+    if (!isNaN(minScore) || !isNaN(maxScore)) isFiltered = true;
+
+    if (req.query.language) {
+      if (req.query.language === 'submit-answer') {
+        query.andWhere(new TypeORM.Brackets(qb => {
+          qb.orWhere('language = :language', { language: '' })
+            .orWhere('language IS NULL');
+        }));
+        isFiltered = true;
+      } else if (req.query.language === 'non-submit-answer') {
+        query.andWhere('language != :language', { language: '' })
+             .andWhere('language IS NOT NULL');
+        isFiltered = true;
+      } else {
+        query.andWhere('language = :language', { language: req.query.language });
+      }
+    }
+
+    if (req.query.status) {
+      query.andWhere('status = :status', { status: req.query.status });
+      isFiltered = true;
+    }
+
+    if (req.query.problem_id) {
+      let problem_id = parseInt(req.query.problem_id);
+      let problem = await Problem.findById(problem_id);
+      if (!problem)
+        throw new ErrorMessage("无此题目。");
+      query.andWhere('problem_id = :problem_id', { problem_id: parseInt(req.query.problem_id) || 0 });
+      isFiltered = true;
+    }
+
+    let judge_state, paginate;
+
+    if (syzoj.config.submissions_page_fast_pagination) {
+      const queryResult = await JudgeState.queryPageFast(query, syzoj.utils.paginateFast(
+        req.query.currPageTop, req.query.currPageBottom, syzoj.config.page.judge_state
+      ), -1, parseInt(req.query.page));
+
+      judge_state = queryResult.data;
+      paginate = queryResult.meta;
+    } else {
+      paginate = syzoj.utils.paginate(
+        await JudgeState.countQuery(query),
+        req.query.page,
+        syzoj.config.page.judge_state
+      );
+      judge_state = await JudgeState.queryPage(paginate, query, { id: "DESC" }, true);
+    }
+
+    await judge_state.forEachAsync(async obj => {
+      await obj.loadRelationships();
+    });
+
+    res.render('submissions', {
+      items: judge_state.map(x => ({
+        info: getSubmissionInfo(x, displayConfig),
+        token: (x.pending && x.task_id != null) ? jwt.sign({
+          taskId: x.task_id,
+          type: 'rough',
+          displayConfig: displayConfig
+        }, syzoj.config.session_secret) : null,
+        result: getRoughResult(x, displayConfig, true),
+        running: false,
+      })),
+      paginate: paginate,
+      pushType: 'rough',
+      form: req.query,
+      displayConfig: displayConfig,
+      isFiltered: isFiltered,
+      fast_pagination: syzoj.config.submissions_page_fast_pagination
+    });
+  } catch (e) {
+    syzoj.log(e);
+    res.render('error', {
+      err: e
+    });
+  }
+});
+
 app.get('/submission/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
