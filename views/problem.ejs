@@ -302,9 +302,9 @@ if (contest) {
                   <div class="ui attached vertical fluid pointing menu" id="languages-menu" style="height: 370px; overflow-y: scroll; overflow-x: hidden; ">
                     <%
                     let language = syzoj.config.enabled_languages[0];
-                    if (state) {
+                    if (state && syzoj.config.enabled_languages.includes(state.language)) {
                       language = state.language;
-                    } else if (lastLanguage) language = lastLanguage;
+                    } else if (lastLanguage && syzoj.config.enabled_languages.includes(lastLanguage)) language = lastLanguage;
                     %>
                     <% for (lang of syzoj.config.enabled_languages) { %>
                       <a style="border-radius: 0; " class="item<%= lang === language ? ' active' : '' %>" data-value="<%= lang %>" data-mode="<%= syzoj.languages[lang].editor %>">
@@ -344,7 +344,7 @@ if (contest) {
   window.onEditorLoaded(function () {
     var editorElement = document.getElementById('editor');
     var content = '';
-    <% if (state) { %>content = <%- serializejs(state.code) %>;<% } %>
+    <% if (state && syzoj.config.enabled_languages.includes(state.language)) { %>content = <%- serializejs(state.code) %>;<% } %>
     editor = window.createCodeEditor(editorElement, $('#languages-menu .item.active').data('mode'), content);
     window.editor = editor;
   });
