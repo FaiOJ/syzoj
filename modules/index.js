@@ -16,7 +16,7 @@ app.get('/', async (req, res) => {
     await ranklist.forEachAsync(async x => x.renderInformation());
 
     let notices = (await Article.find({
-      where: { is_notice: true }, 
+      where: { is_notice: true },
       order: { public_time: 'DESC' }
     })).map(article => ({
       title: article.title,
