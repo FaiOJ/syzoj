@@ -6,6 +6,9 @@ declare var syzoj: any;
 import JudgeState from "./judge_state";
 import UserPrivilege from "./user_privilege";
 import Article from "./article";
+import ArticleComment from "./article-comment";
+import ContestPlayer from "./contest_player";
+import SubmissionStatistics from "./submission_statistics";
 
 @TypeORM.Entity()
 export default class User extends Model {
@@ -62,6 +65,26 @@ export default class User extends Model {
 
   @TypeORM.Column({ nullable: true, type: "integer" })
   register_time: number;
+
+  // Foreign Keys 
+  // article
+  @TypeORM.OneToMany(type => Article, article => article.user_t)
+  articles: Article[];
+  // article-comment
+  @TypeORM.OneToMany(type => ArticleComment, articleComment => articleComment.user_t)
+  articleComments: ArticleComment[];
+  // contest_player
+  @TypeORM.OneToMany(type => ContestPlayer, contestPlayer => contestPlayer.user_t)
+  contestPlayers: ContestPlayer[];
+  // judge_state
+  @TypeORM.OneToMany(type => JudgeState, judgeState => judgeState.user_t)
+  judgeStates: JudgeState[];
+  // user_privilege
+  @TypeORM.OneToMany(type => UserPrivilege, userPrivilege => userPrivilege.user_t)
+  userPrivileges: UserPrivilege[];
+  // submission_statistics
+  @TypeORM.OneToMany(type => SubmissionStatistics, submissionStatistics => submissionStatistics.user_t)
+  submissionStatistics: SubmissionStatistics[];
 
   static async fromEmail(email): Promise<User> {
     return User.findOne({

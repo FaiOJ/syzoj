@@ -60,6 +60,11 @@ export default class Contest extends Model {
   @TypeORM.Column({ nullable: true, type: "boolean" })
   hide_statistics: boolean;
 
+  // Foreign Keys 
+  // contest_player
+  @TypeORM.OneToMany(type => ContestPlayer, contestPlayer => contestPlayer.contest_t)
+  contestPlayers: ContestPlayer[];
+
   holder?: User;
   ranklist?: ContestRanklist;
 

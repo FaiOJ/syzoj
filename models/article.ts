@@ -23,6 +23,9 @@ export default class Article extends Model {
   @TypeORM.Index()
   @TypeORM.Column({ nullable: true, type: "integer" })
   user_id: number;
+  @TypeORM.ManyToOne(type => User, user => user.articles, { onDelete: "CASCADE", onUpdate: "CASCADE" })
+  @TypeORM.JoinColumn({ name: 'user_id' })
+  user_t: User;
 
   @TypeORM.Index()
   @TypeORM.Column({ nullable: true, type: "integer" })
@@ -47,6 +50,11 @@ export default class Article extends Model {
   @TypeORM.Index()
   @TypeORM.Column({ nullable: true, type: "boolean" })
   is_notice: boolean;
+
+  // Foreign Keys
+  // article-comment
+  @TypeORM.OneToMany(type => ArticleComment, articleComment => articleComment.article_t)
+  articleComments: ArticleComment[];
 
   user?: User;
   problem?: Problem;
