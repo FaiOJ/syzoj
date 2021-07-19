@@ -30,6 +30,31 @@ app.get('/ranklist', async (req, res) => {
   }
 });
 
+app.get('/ranklist/all', async (req, res) => {
+  try {
+    const sort = req.query.sort || syzoj.config.sorting.ranklist.field;
+    const order = req.query.order || syzoj.config.sorting.ranklist.order;
+    if (!['ac_num', 'rating', 'id', 'username'].includes(sort) || !['asc', 'desc'].includes(order)) {
+      throw new ErrorMessage('错误的排序参数。');
+    }
+    let paginate = syzoj.utils.paginate(await User.countForPagination(), req.query.page, syzoj.config.page.ranklist);
+    let ranklist = await User.queryPage(paginate,{}, { [sort]: order.toUpperCase() });
+    await ranklist.forEachAsync(async x => x.renderInformation());
+
+    res.render('ranklist', {
+      ranklist: ranklist,
+      paginate: paginate,
+      curSort: sort,
+      curOrder: order === 'asc'
+    });
+  } catch (e) {
+    syzoj.log(e);
+    res.render('error', {
+      err: e
+    });
+  }
+});
+
 app.get('/find_user', async (req, res) => {
   try {
     let user = await User.fromName(req.query.nickname);
