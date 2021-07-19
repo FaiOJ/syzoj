@@ -100,6 +100,14 @@ export default class Contest extends Model {
     return false;
   }
 
+  allowedSeeingTestData() {
+    if(this.type === 'prc') return true;
+  }
+
+  allowedSeeingCode() {
+    if(this.type === 'prc') return true;
+  }
+
   async getProblems() {
     if (!this.problems) return [];
     return this.problems.split('|').map(x => parseInt(x));
