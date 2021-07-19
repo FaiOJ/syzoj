@@ -61,7 +61,7 @@ export default class Contest extends Model {
   @TypeORM.Column({ nullable: true, type: "boolean" })
   hide_statistics: boolean;
 
-  // Foreign Keys 
+  // Foreign Keys
   // contest_player
   @TypeORM.OneToMany(type => ContestPlayer, contestPlayer => contestPlayer.contest_t)
   contestPlayers: ContestPlayer[];
@@ -75,7 +75,7 @@ export default class Contest extends Model {
   }
 
   async isSupervisior(user) {
-    return user && (user.is_admin || this.holder_id === user.id || this.admins.split('|').includes(user.id.toString()));
+    return user && (await user.hasPrivilege('manage_contest') || this.holder_id === user.id || this.admins.split('|').includes(user.id.toString()));
   }
 
   allowedSeeingOthers() {
