@@ -13,13 +13,14 @@ app.get('/contests', async (req, res) => {
     const curUser = res.locals.user;
     const allowManageContest = curUser && (curUser.is_admin || await curUser.hasPrivilege('manage_contest'));
 
+    let showAll = false;
     let where;
-    if (curUser && allowManageContest) where = {};
+    if (allowManageContest && req.query.show_all == 'true') showAll = true, where = {};
     else where = { is_public: true };
 
     let paginate = syzoj.utils.paginate(await Contest.countForPagination(where), req.query.page, syzoj.config.page.contest);
     let contests = await Contest.queryPage(paginate, where, {
-      end_time: 'DESC'
+      start_time: 'DESC'
     });
 
     await contests.forEachAsync(async x => x.subtitle = await syzoj.utils.markdown(x.subtitle));
@@ -27,7 +28,8 @@ app.get('/contests', async (req, res) => {
     res.render('contests', {
       contests: contests,
       paginate: paginate,
-      allowManageContest: allowManageContest
+      allowManageContest: allowManageContest,
+      showAll: showAll
     })
   } catch (e) {
     syzoj.log(e);
@@ -296,11 +298,11 @@ function getDisplayConfig(contest) {
   return {
     showScore: contest.allowedSeeingScore(),
     showUsage: false,
-    showCode: false,
+    showCode: contest.allowedSeeingCode(),
     showResult: contest.allowedSeeingResult(),
     showOthers: contest.allowedSeeingOthers(),
     showDetailResult: contest.allowedSeeingTestcase(),
-    showTestdata: false,
+    showTestdata: contest.allowedSeeingTestData(),
     inContest: true,
     showRejudge: false
   };
@@ -439,11 +441,12 @@ app.get('/contest/submission/:id', async (req, res) => {
     const judge = await JudgeState.findById(id);
     if (!judge) throw new ErrorMessage("提交记录 ID 不正确。");
     const curUser = res.locals.user;
-    if ((!curUser) || judge.user_id !== curUser.id) throw new ErrorMessage("您没有权限执行此操作。");
 
-    if (judge.type !== 1) {
+    if (judge.type !== 1 || (curUser && curUser.is_admin)) {
       return res.redirect(syzoj.utils.makeUrl(['submission', id]));
     }
+    
+    if ((!curUser) || judge.user_id !== curUser.id) throw new ErrorMessage("您没有权限执行此操作。");
 
     const contest = await Contest.findById(judge.type_info);
     contest.ended = contest.isEnded();

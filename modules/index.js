@@ -30,7 +30,7 @@ app.get('/', async (req, res) => {
     }
 
     let contests = await Contest.queryRange([1, 5], { is_public: true }, {
-      end_time: 'DESC'
+      start_time: 'DESC'
     });
 
     let problems = (await Problem.queryRange([1, 5], { is_public: true }, {
