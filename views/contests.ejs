@@ -5,6 +5,17 @@
     <% if (allowManageContest) { %>
     <form class="ui mini form">
       <div class="inline fields" style="margin-bottom: 25px; white-space: nowrap; ">
+        <% if (showAll) {%>
+        <a href="/contests" class="ui mini labeled icon right floated button">
+          <i class="hide icon"></i>
+          隐藏未公开比赛
+        </a>
+        <% } else { %>
+        <a href="/contests?show_all=true" class="ui mini labeled icon right floated button">
+          <i class="eye icon"></i>
+          显示未公开比赛
+        </a>
+        <% } %>
         <a href="<%= syzoj.utils.makeUrl(['contest', 0, 'edit']) %>" class="ui mini labeled icon right floated button" style="margin-left: auto; ">
           <i class="ui icon write"></i>
           添加比赛
