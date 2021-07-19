@@ -11,7 +11,8 @@ import ContestPlayer from "./contest_player";
 enum ContestType {
   NOI = "noi",
   IOI = "ioi",
-  ICPC = "acm"
+  ICPC = "acm",
+  PRC = "prc"
 }
 
 @TypeORM.Entity()
@@ -37,7 +38,7 @@ export default class Contest extends Model {
   @TypeORM.Column({ nullable: true, type: "integer" })
   holder_id: number;
 
-  // type: noi, ioi, acm
+  // type: noi, ioi, acm, prc
   @TypeORM.Column({ nullable: true, type: "enum", enum: ContestType })
   type: ContestType;
 
@@ -78,23 +79,31 @@ export default class Contest extends Model {
   }
 
   allowedSeeingOthers() {
-    if (this.type === 'acm') return true;
+    if (this.type === 'acm' || this.type === 'prc') return true;
     else return false;
   }
 
   allowedSeeingScore() { // If not, then the user can only see status
-    if (this.type === 'ioi') return true;
+    if (this.type === 'ioi' || this.type === 'prc') return true;
     else return false;
   }
 
   allowedSeeingResult() { // If not, then the user can only see compile progress
-    if (this.type === 'ioi' || this.type === 'acm') return true;
+    if (this.type === 'ioi' || this.type === 'acm' || this.type === 'prc') return true;
     else return false;
   }
 
   allowedSeeingTestcase() {
-    if (this.type === 'ioi') return true;
+    if (this.type === 'ioi' || this.type === 'prc') return true;
     return false;
+  }
+
+  allowedSeeingTestData() {
+    if(this.type === 'prc') return true;
+  }
+
+  allowedSeeingCode() {
+    if(this.type === 'prc') return true;
   }
 
   async getProblems() {
