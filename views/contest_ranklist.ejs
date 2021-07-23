@@ -143,7 +143,7 @@
                       </a>
                     </td>
                   <% } else if (contest.type === 'noi' || contest.type === 'ioi' || contest.type === 'prc') { %>
-                      <a href="<%= syzoj.utils.makeUrl(['submission', item.player.score_details[problem.id].judge_id]) %>">
+                      <a href="<%= syzoj.utils.makeUrl(['contest/submission', item.player.score_details[problem.id].judge_id]) %>">
                         <% if (item.player.score_details[problem.id].weighted_score != null) { %>
                           <span class="score score_<%= parseInt((item.player.score_details[problem.id].score / 10) || 0) %>">
                             <%= Math.round(item.player.score_details[problem.id].weighted_score) %>
