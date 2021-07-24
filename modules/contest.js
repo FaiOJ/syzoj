@@ -454,10 +454,12 @@ app.get('/contest/submission/:id', async (req, res) => {
 
     if (judge.type !== 1 || (curUser && curUser.is_admin))
       return res.redirect(syzoj.utils.makeUrl(['submission', id]));
-    if ((!curUser) || judge.user_id !== curUser.id) throw new ErrorMessage("您没有权限执行此操作。");
-
     const contest = await Contest.findById(judge.type_info);
     contest.ended = contest.isEnded();
+    if (contest.isEnded())
+      return res.redirect(syzoj.utils.makeUrl(['submission', id]));
+
+    if ((!curUser) || judge.user_id !== curUser.id) throw new ErrorMessage("您没有权限执行此操作。");
 
     const displayConfig = getDisplayConfig(contest);
     displayConfig.showCode = true;
