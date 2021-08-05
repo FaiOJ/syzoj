@@ -11,23 +11,23 @@ app.get('/discussion/:type?', async (req, res) => {
     const in_problems = req.params.type === 'problems';
 
     let query = Article.createQueryBuilder();
+    if (in_problems)
+      query.where({ problem_id: TypeORM.Not(TypeORM.IsNull()) });
+    else
+      query.where({ problem_id: null });
     if (!res.locals.user || !await res.locals.user.hasPrivilege('manage_article')) {
       if (res.locals.user) {
-        query.where('is_public = 1')
-          .orWhere('user_id = :user_id', { user_id: res.locals.user.id });
+        query.andWhere(new Brackets(qb => {
+          qb.where('is_public = 1')
+            .orWhere('user_id = :user_id', {user_id: res.locals.user.id});
+        }));
       } else {
-        query.where('is_public = 1');
+        query.andWhere('is_public = 1');
       }
     }
 
-    let where;
-    if (in_problems) {
-      where = { problem_id: TypeORM.Not(TypeORM.IsNull()) };
-    } else {
-      where = { problem_id: null };
-    }
     let paginate = syzoj.utils.paginate(await Article.countForPagination(query), req.query.page, syzoj.config.page.discussion);
-    let articles = await Article.queryPage(paginate, where, {
+    let articles = await Article.queryPage(paginate, query, {
       sort_time: 'DESC'
     });
 
