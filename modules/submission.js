@@ -155,7 +155,7 @@ app.get('/submissions/all', async (req, res) => {
   try {
     const curUser = res.locals.user;
 
-    if (!curUser || !curUser.is_admin)
+    if (!curUser || !(curUser.hasPrivilege('manage_contest')))
       throw new ErrorMessage("您没有权限使用此功能。");
 
     let query = JudgeState.createQueryBuilder();
