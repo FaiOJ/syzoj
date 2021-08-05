@@ -21,14 +21,14 @@
     "format": "cpp"
   },
   "cpp-noilinux": {
-    "show": "C++ (NOI)",
+    "show": "C++ (NOI1.4)",
     "highlight": "cpp",
     "version": "GCC 4.8.4 (NOILinux 1.4.1)",
     "editor": "cpp",
     "format": "cpp"
   },
   "cpp11-noilinux": {
-    "show": "C++ 11 (NOI)",
+    "show": "C++ 11 (NOI1.4)",
     "highlight": "cpp",
     "version": "GCC 4.8.4 (NOILinux 1.4.1)",
     "editor": "cpp",
@@ -48,6 +48,13 @@
     "editor": "cpp",
     "format": "cpp"
   },
+  "cpp-g++-9.3.0": {
+    "show": "C++ (NOI2.0)",
+    "highlight": "cpp",
+    "version": "GCC 9.3.0",
+    "editor": "cpp",
+    "format": "cpp"
+  },
   "c": {
     "show": "C",
     "highlight": "c",
@@ -56,7 +63,7 @@
     "format": "c"
   },
   "c-noilinux": {
-    "show": "C (NOI)",
+    "show": "C (NOI1.4)",
     "highlight": "c",
     "version": "GCC 4.8.4 (NOILinux 1.4.1)",
     "editor": "c",
