@@ -17,7 +17,7 @@ app.get('/discussion/:type?', async (req, res) => {
       query.where({ problem_id: null });
     if (!res.locals.user || !await res.locals.user.hasPrivilege('manage_article')) {
       if (res.locals.user) {
-        query.andWhere(new Brackets(qb => {
+        query.andWhere(new TypeORM.Brackets(qb => {
           qb.where('is_public = 1')
             .orWhere('user_id = :user_id', {user_id: res.locals.user.id});
         }));
