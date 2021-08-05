@@ -39,6 +39,8 @@ export default class ArticleComment extends Model {
 
   async isAllowedEditBy(user) {
     await this.loadRelationships();
-    return user && (user.is_admin || this.user_id === user.id || user.id === this.article.user_id);
+    if (!user) return false;
+    if (await user.hasPrivilege('manage_article')) return true;
+    return this.user_id === user.id || user.id === this.article.user_id;
   }
 };

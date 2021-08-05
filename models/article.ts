@@ -51,6 +51,10 @@ export default class Article extends Model {
   @TypeORM.Column({ nullable: true, type: "boolean" })
   is_notice: boolean;
 
+  @TypeORM.Index()
+  @TypeORM.Column({ default: true, type: "boolean" })
+  is_public: boolean;
+
   // Foreign Keys
   // article-comment
   @TypeORM.OneToMany(type => ArticleComment, articleComment => articleComment.article_t)
@@ -64,16 +68,26 @@ export default class Article extends Model {
   }
 
   async isAllowedEditBy(user) {
-    return user && (user.is_admin || this.user_id === user.id);
+    if (!user) return false;
+    if (await user.hasPrivilege('manage_article')) return true;
+    return this.user_id === user.id;
+  }
+
+  async isAllowedManageBy(user) {
+    return user && await user.hasPrivilege('manage_article');
   }
 
   async isAllowedCommentBy(user) {
-    return user && (this.allow_comment || user.is_admin || this.user_id === user.id);
+    if (!user) return false;
+    if (await user.hasPrivilege('manage_article')) return true;
+    return this.allow_comment || this.user_id === user.id;
   }
 
   async resetReplyCountAndTime() {
     await syzoj.utils.lock(['Article::resetReplyCountAndTime', this.id], async () => {
-      this.comments_num = await ArticleComment.count({ article_id: this.id });
+      this.comments_num = await ArticleComment.count({
+        where: { article_id: this.id }
+      });
       if (this.comments_num === 0) {
         this.sort_time = this.public_time;
       } else {

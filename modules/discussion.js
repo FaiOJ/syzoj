@@ -10,13 +10,23 @@ app.get('/discussion/:type?', async (req, res) => {
     }
     const in_problems = req.params.type === 'problems';
 
+    let query = Article.createQueryBuilder();
+    if (!res.locals.user || !await res.locals.user.hasPrivilege('manage_article')) {
+      if (res.locals.user) {
+        query.where('is_public = 1')
+          .orWhere('user_id = :user_id', { user_id: res.locals.user.id });
+      } else {
+        query.where('is_public = 1');
+      }
+    }
+
     let where;
     if (in_problems) {
       where = { problem_id: TypeORM.Not(TypeORM.IsNull()) };
     } else {
       where = { problem_id: null };
     }
-    let paginate = syzoj.utils.paginate(await Article.countForPagination(where), req.query.page, syzoj.config.page.discussion);
+    let paginate = syzoj.utils.paginate(await Article.countForPagination(query), req.query.page, syzoj.config.page.discussion);
     let articles = await Article.queryPage(paginate, where, {
       sort_time: 'DESC'
     });
@@ -82,6 +92,7 @@ app.get('/article/:id', async (req, res) => {
     await article.loadRelationships();
     article.allowedEdit = await article.isAllowedEditBy(res.locals.user);
     article.allowedComment = await article.isAllowedCommentBy(res.locals.user);
+    article.allowedManage = await article.isAllowedManageBy(res.locals.user);
     article.content = await syzoj.utils.markdown(article.content);
 
     let where = { article_id: id };
@@ -135,6 +146,7 @@ app.get('/article/:id/edit', async (req, res) => {
     } else {
       article.allowedEdit = await article.isAllowedEditBy(res.locals.user);
     }
+    article.allowedManage = await article.isAllowedManageBy(res.locals.user);
 
     res.render('article_edit', {
       article: article
@@ -153,6 +165,7 @@ app.post('/article/:id/edit', async (req, res) => {
 
     let id = parseInt(req.params.id);
     let article = await Article.findById(id);
+    let allowedManage = await article.isAllowedManageBy(res.locals.user);
 
     let time = syzoj.utils.getCurrentDate();
     if (!article) {
@@ -175,7 +188,8 @@ app.post('/article/:id/edit', async (req, res) => {
     article.title = req.body.title;
     article.content = req.body.content;
     article.update_time = time;
-    article.is_notice = (res.locals.user && res.locals.user.is_admin ? req.body.is_notice === 'on' : article.is_notice);
+    article.is_notice = allowedManage ? req.body.is_notice === 'on' : article.is_notice;
+    article.allow_comment = allowedManage ? req.body.allow_comment === 'on' : article.allow_comment;
 
     await article.save();
 
@@ -187,6 +201,37 @@ app.post('/article/:id/edit', async (req, res) => {
     });
   }
 });
+
+// Set article public
+async function setPublic(req, res, is_public) {
+  try {
+    let id = parseInt(req.params.id);
+    let article = await Article.findById(id);
+    if (!article) throw new ErrorMessage('无此帖子。');
+
+    let allowedManage = await article.isAllowedManageBy(res.locals.user);
+    if (!allowedManage) throw new ErrorMessage('您没有权限进行此操作。');
+
+    article.is_public = is_public;
+    await article.save();
+
+    res.redirect(syzoj.utils.makeUrl(['article', id]));
+  } catch (e) {
+    syzoj.log(e);
+    res.render('error', {
+      err: e
+    });
+  }
+}
+
+app.post('/article/:id/public', async (req, res) => {
+  await setPublic(req, res, true);
+});
+
+app.post('/article/:id/dis_public', async (req, res) => {
+  await setPublic(req, res, false);
+});
+
 
 app.post('/article/:id/delete', async (req, res) => {
   try {
