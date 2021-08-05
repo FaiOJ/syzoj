@@ -65,6 +65,7 @@ tags
 
 # End of https://www.gitignore.io/api/vim
 static/images/
+static/lecture/
 uploads
 dump.rdb
 .idea
