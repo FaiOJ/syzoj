@@ -67,6 +67,13 @@ export default class Article extends Model {
     this.user = await User.findById(this.user_id);
   }
 
+  async isAllowedUseBy(user) {
+    if (this.is_public) return true;
+    if (!user) return false;
+    if (await user.hasPrivilege('manage_article')) return true;
+    return this.user_id === user.id;
+  }
+
   async isAllowedEditBy(user) {
     if (!user) return false;
     if (await user.hasPrivilege('manage_article')) return true;

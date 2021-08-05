@@ -103,8 +103,12 @@ app.get('/user/:id', async (req, res) => {
     let id = parseInt(req.params.id);
     let user = await User.findById(id);
     if (!user) throw new ErrorMessage('无此用户。');
+
+    const curUser = res.locals.user;
+    let showAllArticles = curUser && (await curUser.hasPrivilege('manage_article') || curUser.id === user.id);
+
     user.ac_problems = await user.getACProblems();
-    user.articles = await user.getArticles();
+    user.articles = await user.getArticles(!showAllArticles);
     user.allowedEdit = await user.isAllowedEditBy(res.locals.user);
 
     let statistics = await user.getStatistics();

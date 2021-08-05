@@ -89,6 +89,10 @@ app.get('/article/:id', async (req, res) => {
     let article = await Article.findById(id);
     if (!article) throw new ErrorMessage('无此帖子。');
 
+    if (!await article.isAllowedUseBy(res.locals.user)) {
+      throw new ErrorMessage('您没有权限进行此操作。');
+    }
+
     await article.loadRelationships();
     article.allowedEdit = await article.isAllowedEditBy(res.locals.user);
     article.allowedComment = await article.isAllowedCommentBy(res.locals.user);

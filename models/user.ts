@@ -66,7 +66,7 @@ export default class User extends Model {
   @TypeORM.Column({ nullable: true, type: "integer" })
   register_time: number;
 
-  // Foreign Keys 
+  // Foreign Keys
   // article
   @TypeORM.OneToMany(type => Article, article => article.user_t)
   articles: Article[];
@@ -135,12 +135,10 @@ export default class User extends Model {
     return queryResult.map(record => record['problem_id'])
   }
 
-  async getArticles() {
-    return await Article.find({
-      where: {
-        user_id: this.id
-      }
-    });
+  async getArticles(only_public = true) {
+    let query = Article.createQueryBuilder().where({user_id: this.id});
+    if(only_public)query.andWhere('is_public=1');
+    return await query.getMany();
   }
 
   async getStatistics() {
