@@ -169,7 +169,7 @@ app.post('/article/:id/edit', async (req, res) => {
 
     let id = parseInt(req.params.id);
     let article = await Article.findById(id);
-    let allowedManage = await article.isAllowedManageBy(res.locals.user);
+    let allowedManage = res.locals.user && res.locals.user.hasPrivilege('manage_article');
 
     let time = syzoj.utils.getCurrentDate();
     if (!article) {
