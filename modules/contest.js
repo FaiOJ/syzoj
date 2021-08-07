@@ -452,7 +452,7 @@ app.get('/contest/submission/:id', async (req, res) => {
     if (!judge) throw new ErrorMessage("提交记录 ID 不正确。");
     const curUser = res.locals.user;
 
-    if (judge.type !== 1 || (curUser && curUser.is_admin))
+    if (judge.type !== 1 || (curUser && curUser.hasPrivilege('manage_contest')))
       return res.redirect(syzoj.utils.makeUrl(['submission', id]));
     const contest = await Contest.findById(judge.type_info);
     contest.ended = contest.isEnded();
