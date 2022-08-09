@@ -17,7 +17,7 @@
       <a href="<%= syzoj.utils.makeUrl(['discussion', 'global']) %>" class="section">全局板块</a>
     <% } %>
   </div>
-  <h1 class="ui header"><%= article.title %><% if (article.allowedManage && !article.is_public) { %><span class="ui tiny red label">未公开</span><% } %></h1>
+  <h1 class="ui header"><%= article.title %><% if (article.allowedEdit && !article.is_public) { %><span class="ui tiny red label">未公开</span><% } %></h1>
  	<p style="margin-bottom: -5px; ">
 	<img style="vertical-align: middle; margin-bottom: 2px; margin-right: 2px; " src="<%= syzoj.utils.gravatar(article.user.email, 34) %>" width="17" height="17">
 	<b style="margin-right: 30px; "><a class="black-link" href="<%= syzoj.utils.makeUrl(['user', article.user_id]) %>"><%= article.user.username %></a><% if (article.user.nameplate) { %><%- article.user.nameplate %><% } %></b>
@@ -25,11 +25,11 @@
 	<% if (article.public_time !== article.update_time) { %><b style="margin-right: 30px; "><i class="edit icon"></i> <%= syzoj.utils.formatDate(article.update_time) %></b><% } %>
         <% if (article.allowedEdit) { %>
         <a style="margin-top: -4px; " class="ui mini red right floated labeled icon button" onclick="$('#modal-delete').modal('show')"><i class="ui trash icon"></i>删除</a>
-        <% if (article.allowedManage) { if (article.is_public) {  %>
+        <% if (article.is_public) {  %>
           <a style="margin-top: -4px; margin-right: 3px; " class="ui mini yellow right floated labeled icon button" id="dis_public" href-post="<%= syzoj.utils.makeUrl(['article', article.id, 'dis_public']) %>"><i class="ui hide icon"></i>隐藏</a>
         <% } else { %>
           <a style="margin-top: -4px; margin-right: 3px; " class="ui mini green right floated labeled icon button" id="public" href-post="<%= syzoj.utils.makeUrl(['article', article.id, 'public']) %>"><i class="ui eye icon"></i>公开</a>
-        <% } } %>
+        <% } %>
         <a style="margin-top: -4px; margin-right: 3px; " class="ui mini right floated labeled icon button" href="<%= syzoj.utils.makeUrl(['article', article.id, 'edit']) %>"><i class="ui edit icon"></i>编辑</a>
         <div class="ui basic modal right floated" id="modal-delete">
           <div class="ui icon header">

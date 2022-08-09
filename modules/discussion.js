@@ -19,7 +19,7 @@ app.get('/discussion/:type?', async (req, res) => {
       if (res.locals.user) {
         query.andWhere(new TypeORM.Brackets(qb => {
           qb.where('is_public = 1')
-            .orWhere('user_id = :user_id', {user_id: res.locals.user.id});
+            .orWhere('user_id = :user_id', { user_id: res.locals.user.id });
         }));
       } else {
         query.andWhere('is_public = 1');
@@ -147,7 +147,13 @@ app.get('/article/:id/edit', async (req, res) => {
       article = await Article.create();
       article.id = 0;
       article.allowedEdit = true;
+      article.allow_comment = true;
+      article.is_public = true;
     } else {
+      if (!await article.isAllowedUseBy(res.locals.user)) {
+        throw new ErrorMessage('您没有权限进行此操作。');
+      }
+
       article.allowedEdit = await article.isAllowedEditBy(res.locals.user);
     }
     article.allowedManage = await article.isAllowedManageBy(res.locals.user);
@@ -169,13 +175,15 @@ app.post('/article/:id/edit', async (req, res) => {
 
     let id = parseInt(req.params.id);
     let article = await Article.findById(id);
-    let allowedManage = res.locals.user && res.locals.user.hasPrivilege('manage_article');
+    let allowedManage = res.locals.user && await res.locals.user.hasPrivilege('manage_article');
+    let allowedEdit = article ? article.isAllowedEditBy(res.locals.user) : true;
 
     let time = syzoj.utils.getCurrentDate();
     if (!article) {
       article = await Article.create();
       article.user_id = res.locals.user.id;
       article.public_time = article.sort_time = time;
+      article.allow_comment = true;
 
       if (req.query.problem_id) {
         let problem = await Problem.findById(req.query.problem_id);
@@ -194,6 +202,7 @@ app.post('/article/:id/edit', async (req, res) => {
     article.update_time = time;
     article.is_notice = allowedManage ? req.body.is_notice === 'on' : article.is_notice;
     article.allow_comment = allowedManage ? req.body.allow_comment === 'on' : article.allow_comment;
+    article.is_public = allowedEdit ? req.body.is_public === 'on' : article.is_public;
 
     await article.save();
 
@@ -213,8 +222,8 @@ async function setPublic(req, res, is_public) {
     let article = await Article.findById(id);
     if (!article) throw new ErrorMessage('无此帖子。');
 
-    let allowedManage = await article.isAllowedManageBy(res.locals.user);
-    if (!allowedManage) throw new ErrorMessage('您没有权限进行此操作。');
+    let allowedEdit = await article.isAllowedEditBy(res.locals.user);
+    if (!allowedEdit) throw new ErrorMessage('您没有权限进行此操作。');
 
     article.is_public = is_public;
     await article.save();

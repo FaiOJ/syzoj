@@ -23,12 +23,18 @@
         </div>
       </div>
 
+    <% if (article.allowedEdit) { %>
+      <div class="ui <% if (article.is_public) { %>checked <% } %>checkbox" style="margin-top: 15px; margin-right: 10px;">
+        <input <% if (article.is_public) { %>checked=""<% } %> name="is_public" type="checkbox">
+        <label><strong>公开讨论</strong></label>
+      </div>
+    <% } %>
     <% if (article.allowedManage) { %>
-        <div class="ui <% if (article.is_notice) { %>checked <% } %>checkbox" style="margin-top: 15px; ">
+        <div class="ui <% if (article.is_notice) { %>checked <% } %>checkbox" style="margin-top: 15px; margin-right: 10px;">
           <input <% if (article.is_notice) { %>checked=""<% } %> name="is_notice" type="checkbox">
           <label><strong>首页公告</strong></label>
         </div>
-        <div class="ui <% if (article.allow_comment) { %>checked <% } %>checkbox" style="margin-top: 15px; margin-left: 10px; ">
+        <div class="ui <% if (article.allow_comment) { %>checked <% } %>checkbox" style="margin-top: 15px; ">
             <input <% if (article.allow_comment) { %>checked=""<% } %> name="allow_comment" type="checkbox">
             <label><strong>允许评论</strong></label>
         </div>
