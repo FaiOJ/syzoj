@@ -12,7 +12,7 @@ function setLoginCookie(username, password, res) {
 app.post('/api/login', async (req, res) => {
   try {
     res.setHeader('Content-Type', 'application/json');
-    let user = await User.fromName(req.body.username);
+    let user = await User.fromName(req.body.username) || await User.fromEmail(req.body.username);
 
     if (!user) throw 1001;
     else if (user.password == null || user.password === '') res.send({ error_code: 1003 });
@@ -63,15 +63,29 @@ app.post('/api/forget', async (req, res) => {
   }
 });
 
+function make_nameplate(str, color) {
+    return '<span class="ui mini ' + color
+        +' label" style="margin-left: 5px;">' + str + '</span>';
+}
+
 // Sign up
 app.post('/api/sign_up', async (req, res) => {
   try {
     res.setHeader('Content-Type', 'application/json');
+    
+    // token validation
+    let valid_tokens = ['ymoi2022', 'ymoi2023', 'mf7WzC0KUtQ='];
+    if (!valid_tokens.includes(req.body.token)) throw 2011;
+    
+    let nameplate = make_nameplate('未认证', 'pink');
+    if(req.body.token == 'ymoi2022') nameplate = make_nameplate('2022' ,'');
+    if(req.body.token == 'ymoi2023') nameplate = make_nameplate('2023' ,'');
+    if(req.body.token == 'mf7WzC0KUtQ=') nameplate = make_nameplate('系统测试' ,'teal');  
+
     let user = await User.fromName(req.body.username);
     if (user) throw 2008;
     user = await User.findOne({ where: { email: String(req.body.email) } });
     if (user) throw 2009;
-
 
     // Because the salt is "syzoj2_xxx" and the "syzoj2_xxx" 's md5 is"59cb..."
     // the empty password 's md5 will equal "59cb.."
@@ -85,6 +99,7 @@ app.post('/api/sign_up', async (req, res) => {
         username: req.body.username,
         password: req.body.password,
         email: req.body.email,
+        nameplate: nameplate
       };
 
       const token = jwt.sign(sendObj, syzoj.config.email_jwt_secret, {
@@ -111,6 +126,7 @@ app.post('/api/sign_up', async (req, res) => {
         username: req.body.username,
         password: req.body.password,
         email: req.body.email,
+        nameplate: nameplate,
         is_show: syzoj.config.default.user.show,
         rating: syzoj.config.default.user.rating,
         register_time: parseInt((new Date()).getTime() / 1000)
@@ -198,6 +214,7 @@ app.get('/api/sign_up_confirm', async (req, res) => {
       username: obj.username,
       password: obj.password,
       email: obj.email,
+      nameplate: obj.nameplate,  
       is_show: syzoj.config.default.user.show,
       rating: syzoj.config.default.user.rating,
       register_time: parseInt((new Date()).getTime() / 1000)

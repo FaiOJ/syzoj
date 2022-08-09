@@ -8,11 +8,15 @@
           <form class="ui form">
                 <div class="field">
                     <label for="username">用户名</label>
-                    <input type="text" placeholder="" id="username">
+                    <input type="text" placeholder="请填写真实中文姓名" id="username">
                 </div>
                 <div class="field">
+		    <label for="token">邀请码</label>
+		    <input type="text" placeholder="请联系管理员获取" id="token"> 
+		</div>
+		<div class="field">
                     <label for="email">邮箱</label>
-                    <input type="email" placeholder="" id="email">
+                    <input type="email" placeholder="用于找回密码" id="email">
                 </div>
                 <div class="two fields">
                     <div class="field">
@@ -24,6 +28,7 @@
                       <input type="password" placeholder="" id="password2">
                     </div>
                 </div>
+                <%# <div><font color="red"><strong>注册功能暂时禁用, 如需注册请邮件联系shanjb20@mails.tsinghua.edu.cn</strong></font></div> %>
                 <a id="sign_up" class="ui button" href="javascript:submit();">注册</a>
             </form>
 </div>
@@ -40,7 +45,7 @@ function success() {
 }
 
 function mail_required() {
-    alert("注册确认邮件已经发送到您的邮箱的垃圾箱，点击邮件内的链接即可完成注册。");
+    alert("注册确认邮件已经发送到您的邮箱，点击邮件内的链接即可完成注册。\n请留意邮箱垃圾箱。");
     var s = $("#email").val();
     var mailWebsite = 'https://mail.' + s.substring(s.indexOf('@') + 1, s.length);
     if (mailWebsite === 'https://mail.gmail.com') mailWebsite = 'https://mail.google.com';
@@ -62,6 +67,7 @@ function submit() {
           username: $("#username").val(),
           password: password,
           email: $("#email").val(),
+          token: $("#token").val(),
           prevUrl: <%- serializejs(req.query.url || '/') %>
         },
         success: function(data) {
@@ -72,7 +78,7 @@ function submit() {
                     break;
                 case 2005:
                 case 2002:
-                    show_error("用户名需要大于 3 个字符小于 16 个字符，仅允许字母数字和下划线");
+                    show_error("用户名需要是 2 ~ 4 个中文字符");
                     break;
                 case 2007:
                 case 2003:
@@ -91,6 +97,9 @@ function submit() {
                 case 2010:
                     show_error("验证邮件发送失败：\n" + data.message);
                     break;
+		case 2011:
+		    show_error("邀请码不正确，请联系管理员");
+		    break;
                 case 1:
                     success();
                     break;
