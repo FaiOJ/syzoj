@@ -6,7 +6,7 @@
     <meta content="IE=edge" http-equiv="X-UA-Compatible">
     <meta name="viewport" content="width=1200">
     <title><%= title %> - <%= syzoj.config.title %></title>
-    <link href="https://cdn.jsdelivr.net/gh/novaELLIAS/CDN_for_ND@2.3.8/img/faioj_favicon.ico" rel="shortcut icon">
+    <link href="/self/faioj_favicon.ico" rel="shortcut icon">
     <link href="<%- lib('semantic-ui/2.4.1/semantic.min.css') %>" rel="stylesheet">
     <link href="<%- selfLib('syntect-tomorrow.css') %>?20220512" rel="stylesheet">
     <link href="<%- selfLib('style.css') %>?20181212" rel="stylesheet">
@@ -33,18 +33,6 @@
       <link href="<%- this.builtInCdnUrl %>/google-fonts/exo-2.css" rel="stylesheet">
     <% } %>
     <script data-cfasync="false" src="<%- lib('jquery/3.3.1/jquery.min.js') %>"></script>
-    <% if (syzoj.config.google_analytics && syzoj.config.google_analytics !== 'UA-XXXXXXXX-X') { %>
-    <script>
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-
-      ga('create', '<%= syzoj.config.google_analytics %>', 'auto');
-      ga('send', 'pageview');
-
-    </script>
-    <% } %>
 </head>
 <body style="position: relative; margin-top: 49px; height: calc(100% - 49px); overflow-y: overlay; ">
     <div class="ui fixed borderless menu" style="position: fixed; height: 49px; ">
@@ -64,7 +52,12 @@
             <a class="item<% if (active.startsWith('submission')) { %> active<% } %>" href="/submissions"><i class="tasks icon"></i> 评测</a>
             <a class="item<% if (active.startsWith('ranklist')) { %> active<% } %>" href="/ranklist"><i class="signal icon"></i> 排名</a>
             <a class="item<% if (active.startsWith('discussion') || active.startsWith('article')) { %> active<% } %>" href="/discussion/global"><i class="comments icon"></i> 讨论</a>
-            <a class="item<% if (active.startsWith('help')) { %> active<% } %>" href="/help"><i class="help circle icon"></i> 帮助</a>
+            <%#
+            <a class="item<\% if (active.startsWith('help')) { %\> active<\% } %\>" href="/help"><i class="help circle icon"></i> 帮助</a>
+            <a class="item<% if (active.startsWith('figure')) { %> active<% } %>" href="/figure"><i class="trophy icon"></i>风流人物</a>
+            %>
+            <a class="item" href="/wiki"><i class="book icon"></i>Wiki</a>
+            <a class="item" href="/cppreference"><i class="code icon"></i>参考手册</a>
             <% if (typeof contest !== 'undefined' && contest && contest.id) { %>
               <a id="back_to_contest" class="item" href="<%= syzoj.utils.makeUrl(['contest', contest.id]) %>"><i class="arrow left icon"></i> 返回比赛</a>
             <% } %>

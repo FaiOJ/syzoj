@@ -4,9 +4,8 @@
     <div class="ui <% if (error_info === '') { %>success<% } else { %>error<% } %> message" id="error" <% if (error_info === null) { %>hidden<% } %>>
       <% if (error_info !== null) {
           if (error_info === '') error_info = '修改成功。';
-      %>
-      	<p id="error_info"><%= error_info %></p>
-      <% } %>
+      } %>
+      <p id="error_info"><%= error_info %></p>
     </div>
 		<form id="form" action="<%= syzoj.utils.makeUrl(['user', edited_user.id, 'edit']) %>" method="post" onsubmit="return check()">
       <div class="ui form">
