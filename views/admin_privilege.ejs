@@ -3,6 +3,7 @@ this.adminPage = 'privilege';
 let privileges = {
   manage_problem: '管理题目',
   manage_problem_tag: '管理题目标签',
+  edit_problem: '编辑题目',
   manage_user: '管理用户',
   manage_contest: '管理比赛',
   manage_article: '管理讨论'
@@ -15,7 +16,7 @@ let privileges = {
     <th>ID</th>
     <th>用户名</th>
     <% for (let privilege in privileges) { %>
-      <th width="20%"><%= privileges[privilege] %></th>
+      <th width="13%"><%= privileges[privilege] %></th>
     <% } %>
   </tr>
 </thead>
