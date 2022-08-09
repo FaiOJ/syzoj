@@ -312,6 +312,16 @@ global.syzoj = {
       res.locals.res = res;
       next();
     });
+  
+    app.use((req, res, next) => {
+      if (req.path.split('/')[1] != 'api' && !res.locals.user) {
+        if (!['/login','/sign_up','/forget'].includes(req.path)) {
+          res.redirect('/login');
+          return;
+        }
+      }
+      next();
+    });
   }
 };
 
