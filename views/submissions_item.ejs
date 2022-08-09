@@ -18,7 +18,7 @@ const problemUrl = <%- serializejs(displayConfig.inContest ?
   syzoj.utils.makeUrl(['problem', '20000528'])) %>;
 const userUrl = <%- serializejs(syzoj.utils.makeUrl(['user', '20000528'])) %>;
 
-<% let showUrl = (active === 'submissions' || (displayConfig.inContest && contest.type === 'prc')) %>
+<% let showUrl = (active === 'submissions' || (displayConfig.inContest && (contest.type === 'prc' || contest.type === 'prc_acm'))) %>
 
 Vue.component('submission-item', {
   template: '#submissionItemTemplate',

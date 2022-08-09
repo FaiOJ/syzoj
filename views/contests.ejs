@@ -1,21 +1,9 @@
 <% this.title = '比赛' %>
 <% include header %>
 <div class="padding">
-    <% if (contests.length) { %>
     <% if (allowManageContest) { %>
     <form class="ui mini form">
       <div class="inline fields" style="margin-bottom: 25px; white-space: nowrap; ">
-        <% if (showAll) {%>
-        <a href="/contests" class="ui mini labeled icon right floated button">
-          <i class="hide icon"></i>
-          隐藏未公开比赛
-        </a>
-        <% } else { %>
-        <a href="/contests?show_all=true" class="ui mini labeled icon right floated button">
-          <i class="eye icon"></i>
-          显示未公开比赛
-        </a>
-        <% } %>
         <a href="<%= syzoj.utils.makeUrl(['contest', 0, 'edit']) %>" class="ui mini labeled icon right floated button" style="margin-left: auto; ">
           <i class="ui icon write"></i>
           添加比赛
@@ -23,6 +11,7 @@
      </div>
     </form>
     <% } %>
+    <% if (contests.length) { %>
     <table class="ui very basic center aligned table">
       <thead>
         <tr>
@@ -39,13 +28,17 @@
           let tag = '';
         %>
         <tr>
-          <% if (now < contest.start_time) { %>
-            <% tag = '<span class="ui header"><div class="ui mini red label">未开始</div></span>' %>
-          <% } else if (now >= contest.start_time && now < contest.end_time) { %>
-            <% tag = '<span class="ui header"><div class="ui mini green label">进行中</div></span>' %>
-          <% } else { %>
-            <% tag = '<span class="ui header"><div class="ui mini grey label">已结束</div></span>' %>
-          <% } %>
+          <%
+          if (now < contest.start_time)
+            tag = '<div class="ui mini yellow label">未开始</div>'
+          else if (now >= contest.start_time && now < contest.end_time) {
+            tag = '<div class="ui mini green label">进行中</div>'
+          } else {
+            tag = '<div class="ui mini grey label">已结束</div>'
+          }
+          if (!contest.is_public) tag = tag + '<div class="ui mini red label">未公开</div>'
+          tag = '<span class="ui header">' + tag + '</span>'
+          %>
 
           <td><a href="<%= syzoj.utils.makeUrl(['contest', contest.id]) %>"><%= contest.title %> <%- tag %></a></td>
           <td><%= syzoj.utils.formatDate(contest.start_time) %></td>

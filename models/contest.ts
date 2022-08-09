@@ -12,7 +12,8 @@ enum ContestType {
   NOI = "noi",
   IOI = "ioi",
   ICPC = "acm",
-  PRC = "prc"
+  PRC = "prc",
+  PRC_ICPC = "prc_acm"
 }
 
 @TypeORM.Entity()
@@ -79,31 +80,31 @@ export default class Contest extends Model {
   }
 
   allowedSeeingOthers() {
-    if (this.type === 'acm' || this.type === 'prc') return true;
-    else return false;
+    return ['prc', 'prc_acm', 'acm'].includes(this.type);
   }
 
   allowedSeeingScore() { // If not, then the user can only see status
-    if (this.type === 'ioi' || this.type === 'prc') return true;
-    else return false;
+    return ['prc', 'prc_acm', 'ioi'].includes(this.type);
+  }
+
+  allowedSeeingUsage() {
+    return ['prc', 'prc_acm'].includes(this.type);
   }
 
   allowedSeeingResult() { // If not, then the user can only see compile progress
-    if (this.type === 'ioi' || this.type === 'acm' || this.type === 'prc') return true;
-    else return false;
+    return ['prc', 'prc_acm', 'acm', 'ioi'].includes(this.type);
   }
 
   allowedSeeingTestcase() {
-    if (this.type === 'ioi' || this.type === 'prc') return true;
-    return false;
+    return ['prc', 'prc_acm', 'ioi'].includes(this.type);
   }
 
   allowedSeeingTestData() {
-    if(this.type === 'prc') return true;
+    return ['prc', 'prc_acm'].includes(this.type);
   }
 
   allowedSeeingCode() {
-    if(this.type === 'prc') return true;
+    return ['prc', 'prc_acm'].includes(this.type);
   }
 
   async getProblems() {

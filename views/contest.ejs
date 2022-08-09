@@ -8,7 +8,7 @@
 </style>
 <% include header %>
 <div class="padding">
-  <h1><%= contest.title %></h1>
+  <h1 class="ui header"><%= contest.title %><% if (isSupervisior && !contest.is_public) { %><span class="ui tiny red label">未公开</span><% } %></h1>
   <div style="margin-bottom: 30px;"><%- contest.subtitle %></div>
   <% let unveiled = (isSupervisior || syzoj.utils.getCurrentDate() >= contest.start_time); %>
   <% const seeResult = (isSupervisior || contest.ended); %>

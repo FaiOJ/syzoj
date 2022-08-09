@@ -13,11 +13,7 @@ app.get('/contests', async (req, res) => {
     const curUser = res.locals.user;
     const allowManageContest = curUser && await curUser.hasPrivilege('manage_contest');
 
-    let showAll = false;
-    let where;
-    if (allowManageContest && req.query.show_all == 'true') showAll = true, where = {};
-    else where = { is_public: true };
-
+    let where = allowManageContest ? {} : { is_public: true };
     let paginate = syzoj.utils.paginate(await Contest.countForPagination(where), req.query.page, syzoj.config.page.contest);
     let contests = await Contest.queryPage(paginate, where, {
       start_time: 'DESC'
@@ -28,8 +24,7 @@ app.get('/contests', async (req, res) => {
     res.render('contests', {
       contests: contests,
       paginate: paginate,
-      allowManageContest: allowManageContest,
-      showAll: showAll
+      allowManageContest: allowManageContest
     })
   } catch (e) {
     syzoj.log(e);
@@ -93,7 +88,7 @@ app.post('/contest/:id/edit', async (req, res) => {
       ranklist = await ContestRanklist.create();
 
       // Only new contest can be set type
-      if (!['noi', 'ioi', 'acm', 'prc'].includes(req.body.type)) throw new ErrorMessage('无效的赛制。');
+      if (!['noi', 'ioi', 'acm', 'prc', 'prc_acm'].includes(req.body.type)) throw new ErrorMessage('无效的赛制。');
       contest.type = req.body.type;
     } else {
       // if contest exists, both system administrators and contest administrators can edit it.
@@ -184,7 +179,7 @@ app.get('/contest/:id', async (req, res) => {
             let multiplier = contest.ranklist.ranking_params[problem.problem.id] || 1.0;
             problem.feedback = (judge_state.score * multiplier).toString() + ' / ' + (100 * multiplier).toString();
           }
-        } else if (contest.type === 'acm') {
+        } else if (contest.type === 'acm' || contest.type === 'prc_acm') {
           if (player.score_details[problem.problem.id]) {
             problem.status = {
               accepted: player.score_details[problem.problem.id].accepted,
@@ -214,7 +209,7 @@ app.get('/contest/:id', async (req, res) => {
         for (let player of players) {
           if (player.score_details[problem.problem.id]) {
             problem.statistics.attempt++;
-            if ((contest.type === 'acm' && player.score_details[problem.problem.id].accepted) || ((contest.type === 'noi' || contest.type === 'ioi' || contest.type === 'prc') && player.score_details[problem.problem.id].score === 100)) {
+            if ((['acm', 'prc_acm'].includes(contest.type) && player.score_details[problem.problem.id].accepted) || (['prc', 'noi', 'ioi'].includes(contest.type) && player.score_details[problem.problem.id].score === 100)) {
               problem.statistics.accepted++;
             }
 
@@ -304,7 +299,7 @@ app.get('/contest/:id/ranklist', async (req, res) => {
 function getDisplayConfig(contest) {
   return {
     showScore: contest.allowedSeeingScore(),
-    showUsage: false,
+    showUsage: contest.allowedSeeingUsage(),
     showCode: contest.allowedSeeingCode(),
     showResult: contest.allowedSeeingResult(),
     showOthers: contest.allowedSeeingOthers(),
@@ -520,7 +515,6 @@ app.get('/contest/:id/problem/:pid', async (req, res) => {
       }
       throw new ErrorMessage('比赛尚未开始。');
     }
-
     problem.specialJudge = await problem.hasSpecialJudge();
 
     await syzoj.utils.markdown(problem, ['description', 'input_format', 'output_format', 'example', 'limit_and_hint']);

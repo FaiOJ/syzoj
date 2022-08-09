@@ -32,7 +32,13 @@
               <div class="field">
                 <div class="ui radio checkbox">
                   <input <% if (contest.id) { %>disabled <% } %>type="radio" name="type" id="type-prc" value="prc"<% if (contest.type === 'prc') { %> checked="checked"<% } %>>
-                  <label for="type-prc">练习赛</label>
+                  <label for="type-prc">练习赛(IOI)</label>
+                </div>
+              </div>
+              <div class="field">
+                <div class="ui radio checkbox">
+                  <input <% if (contest.id) { %>disabled <% } %>type="radio" name="type" id="type-prc-acm" value="prc_acm"<% if (contest.type === 'prc_acm') { %> checked="checked"<% } %>>
+                  <label for="type-prc">练习赛(ICPC)</label>
                 </div>
               </div>
               <div class="field">
