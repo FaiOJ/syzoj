@@ -52,9 +52,16 @@ export default class Problem extends Model {
   @TypeORM.Index()
   @TypeORM.Column({ nullable: true, type: "integer" })
   user_id: number;
+  @TypeORM.ManyToOne(type => User, user => user.problem_owned, { onDelete: "CASCADE", onUpdate: "CASCADE" })
+  @TypeORM.JoinColumn({ name: 'user_id' })
+  user_owner: User;
 
+  @TypeORM.Index()
   @TypeORM.Column({ nullable: true, type: "integer" })
   publicizer_id: number;
+  @TypeORM.ManyToOne(type => User, user => user.problem_published, { onDelete: "CASCADE", onUpdate: "CASCADE" })
+  @TypeORM.JoinColumn({ name: 'publicizer_id' })
+  user_publisher: User;
 
   @TypeORM.Column({ nullable: true, type: "boolean" })
   is_anonymous: boolean;
@@ -126,6 +133,7 @@ export default class Problem extends Model {
   async isAllowedEditBy(user) {
     if (!user) return false;
     if (await user.hasPrivilege('manage_problem')) return true;
+    if (await user.hasPrivilege('edit_problem')) return true;
     return this.user_id === user.id;
   }
 

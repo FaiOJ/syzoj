@@ -9,6 +9,7 @@ import Article from "./article";
 import ArticleComment from "./article-comment";
 import ContestPlayer from "./contest_player";
 import SubmissionStatistics from "./submission_statistics";
+import Problem from "./problem";
 
 @TypeORM.Entity()
 export default class User extends Model {
@@ -85,6 +86,11 @@ export default class User extends Model {
   // submission_statistics
   @TypeORM.OneToMany(type => SubmissionStatistics, submissionStatistics => submissionStatistics.user_t)
   submissionStatistics: SubmissionStatistics[];
+  // problem
+  @TypeORM.OneToMany(type => Problem, problem_owned => problem_owned.user_owner)
+  problem_owned: Problem[];
+  @TypeORM.OneToMany(type => Problem, problem_published => problem_published.user_publisher)
+  problem_published: Problem[];
 
   static async fromEmail(email): Promise<User> {
     return User.findOne({
